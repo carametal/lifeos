@@ -1,6 +1,6 @@
 # Life OS — Phase 1 設計案
 
-作成日: 2026-09-24。状態: 改善方針承認済み。正式開発場所は /Users/carametal/Dev/lifeos。Phase 2を開始。外部サービスは未接続。
+作成日: 2026-09-24。状態: 改善方針承認済み。正式開発場所は /Users/carametal/Dev/lifeos。Phase 3のローカル実装を追加。提供された接続先の公開Auth設定を読み取り確認済み。リモートDBは未適用。
 
 ## 1. 目的とスコープ
 
@@ -50,9 +50,9 @@ UUIDを主キーに使用。栄養値はnumeric、カロリーはkcal、その�
 
 | テーブル | 主な列 | 方針 |
 |---|---|---|
-| profiles | id → auth.users.id, display_name nullable, timezone, created_at, updated_at | timezoneはMVPではAsia/Tokyo固定。管理者がアカウント作成時に準備 |
+| profiles | id → auth.users.id, display_name nullable, timezone, created_at, updated_at | timezoneはMVPではAsia/Tokyo固定。auth.usersの作成トリガーで自動準備 |
 | nutrition_goals | id, user_id, effective_from date, revision, calories_kcal, protein_g, fat_g, carbs_g, fiber_g, created_at | 適用日ごとに版を追加し、旧版を保持。値はnullableかつ正数 |
-| food_logs | id, user_id, eaten_at, meal_type, content, calories_kcal, protein_g, fat_g, carbs_g, fiber_g, ai_estimate jsonb nullable, created_at, updated_at | 栄養値はnullableかつ非負。保存値は利用者の確認後の値 |
+| food_logs | id, user_id, eaten_at, meal_type, content, calories_kcal, protein_g, fat_g, carbs_g, fiber_g, ai_estimate jsonb nullable（Phase 5で追加）, created_at, updated_at | 栄養値はnullableかつ非負。保存値は利用者の確認後の値 |
 | ai_usage（Phase 5） | id, user_id, request_key, status, input_tokens, output_tokens, estimated_cost, model, created_at | 本文を含めず、利用量と回数制限を管理 |
 
 nutrition_goalsは(user_id, effective_from, revision)を一意にする。同じ適用日の訂正も新しい版として追加し、更新・削除で旧版を消さない。対象日以前の最新適用日、その日の最大revisionを選ぶ。同日付の並列保存はトランザクションで採番する。過去日への適用は比較結果が変わることを表示し、利用者に確認する。過去の値は監査可能だが、通常の表示は最新の訂正を反映する。
